@@ -46,4 +46,34 @@ module GeohashNaive
     end.join
   end
   module_function :encode
+
+
+  def decode(geohash)
+    lat_plane = [-90.0, 90.0]
+    lon_plane = [-180.0, 180.0]
+    lon_processing = true
+    geohash.downcase.each_char do |char|
+      ch = BASE32.index(char)
+      BITS.each do |bit|
+        if lon_processing
+          mid = lon_plane.inject(:+) / 2
+          if bit & ch == bit
+            lon_plane[0] = mid
+          else
+            lon_plane[1] = mid
+          end
+        else
+          mid = lat_plane.inject(:+) / 2
+          if bit & ch == bit
+            lat_plane[0] = mid
+          else
+            lat_plane[1] = mid
+          end
+        end
+        lon_processing = !lon_processing
+      end
+    end
+    [lat_plane.last, lon_plane.last]
+  end
+  module_function :decode
 end
